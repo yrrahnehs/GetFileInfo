@@ -1,4 +1,6 @@
 import sys
+from collections import OrderedDict
+import collections
 import os
 
 
@@ -37,31 +39,41 @@ def keywordlines(keyword, newfilename):
         print("File not found")
     except FileExistsError:
         print("File already exists")
+    except:  # handle other exceptions such as attribute errors
+        print("Unexpected error:", sys.exc_info()[0])
 
 
 def keywordcount(fromstring, tostring, newfilename):
     try:
+        targetlist = []
         file = open(sys.argv[1], "r")
-        newfile = open(newfilename, "w+")
-        line_count = 0
+        newfile = open(str(newfilename), "w+")
+
         for line in file:
-            target = line[line.find(fromstring) + len(fromstring): line.find(tostring)]
-            if target in line:
-                stringtowrite = str(target) + ": 1 \n"
-                if os.stat(sys.argv[1]).st_size == 0:
-                    newfile.write(stringtowrite)
-                    return
-                if target not in newfile:
-                    newfile.write(stringtowrite)
+            start = line.find(fromstring) + len(fromstring)
+            end = line.find(tostring)
+            target = line[start:end]
+            if target in line and fromstring in line:
+                targetlist.append(target)
         file.close()
-        print(f"The file has", line_count, "lines")
+
+        counts = collections.Counter(targetlist)
+        sortedlist = sorted(targetlist, key=lambda x: -counts[x])
+
+        uniqueids = list(OrderedDict.fromkeys(sortedlist))
+
+        for i in uniqueids:
+            amt_of_occurrences = targetlist.count(i)
+            finalstring = "{}: {} \n".format(i, amt_of_occurrences)
+            newfile.write(finalstring)
+
+        print(f"The file has", len(uniqueids), "unique lines")
+
         return
     except FileNotFoundError:  # when file can not be found
         print("File not found")
     except FileExistsError:
         print("File already exists")
-    except:  # handle other exceptions such as attribute errors
-        print("Unexpected error:", sys.exc_info()[0])
 
 
 # Returns the number of lines in a file
@@ -70,6 +82,10 @@ def keywordcount(fromstring, tostring, newfilename):
 #   Argv[2] = "-keyword" | "-keycount"
 
 if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        print("Invalid arguments")
+        sys.exit(0)
+
     if len(sys.argv) == 2:
         if sys.argv[1] == "-help":
             print(f"getfileinfo <filepath> [-keyword <keyword> <newFileName> |"
