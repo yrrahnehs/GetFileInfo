@@ -1,7 +1,6 @@
 import sys
 from collections import OrderedDict
 import collections
-import os
 
 
 # Counts the number of lines in a file
@@ -22,7 +21,7 @@ def countlines():
 
 
 # Counts the number of lines that has the keyword
-# Creates a new file with those lines
+# Creates a new file called newfilename with those lines
 def keywordlines(keyword, newfilename):
     try:
         file = open(sys.argv[1], "r")
@@ -43,16 +42,19 @@ def keywordlines(keyword, newfilename):
         print("Unexpected error:", sys.exc_info()[0])
 
 
-def keywordcount(fromstring, tostring, newfilename):
+# Counts the occurrences of the string between fromstring and tostring
+# and creates a new file called newfilename with the results
+def keybetween(fromstring, tostring, newfilename):
     try:
         targetlist = []
         file = open(sys.argv[1], "r")
         newfile = open(str(newfilename), "w+")
 
         for line in file:
-            start = line.find(fromstring) + len(fromstring)
-            end = line.find(tostring)
-            target = line[start:end]
+            firstword = line.find(fromstring) + len(fromstring)
+            rest = line[firstword:]
+            secondword = rest.find(tostring)
+            target = rest[0:secondword]
             if target in line and fromstring in line:
                 targetlist.append(target)
         file.close()
@@ -79,7 +81,7 @@ def keywordcount(fromstring, tostring, newfilename):
 # Returns the number of lines in a file
 #   example: /getfileinfo.py <filepath> -keyword <keyword> <newFileName>
 #   Argv[1] = file path OR "-help"
-#   Argv[2] = "-keyword" | "-keycount"
+#   Argv[2] = "-keyword" | "-between" | "-amount"
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
@@ -99,8 +101,11 @@ if __name__ == '__main__':
         elif len(sys.argv) != 5:
             print("Invalid amount of arguments")
 
-    elif sys.argv[2] == "-keycount":
+    elif sys.argv[2] == "-between":
         if len(sys.argv) == 6:
-            keywordcount(sys.argv[3], sys.argv[4], sys.argv[5])
+            keybetween(sys.argv[3], sys.argv[4], sys.argv[5])
         elif len(sys.argv) != 6:
             print("Invalid amount of arguments")
+
+    else:
+        print("Invalid amount of arguments, use -help for more info")
